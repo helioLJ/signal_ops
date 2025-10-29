@@ -1,0 +1,29 @@
+---
+description: Standards for Grafana dashboards and alerting
+globs:
+  - "observability/grafana/**/*"
+alwaysApply: false
+---
+
+# Grafana — Dashboards & Alerts
+
+- Dashboards must cover the **Four Golden Signals**:
+  - **Latency**, **Traffic**, **Errors**, **Saturation**
+- Standard panel names:
+  - `API Overview`, `Database Metrics`, `Tracing Heatmap`
+- Avoid redundant or duplicated queries across panels
+- Use consistent labels across all metrics:
+  - `service="signal_ops_api"`
+  - `env="local"` or `env="prod"`
+- Alerts follow this template:
+```
+
+alert: High Error Rate
+expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.05
+for: 2m
+labels:
+severity: critical
+
+```
+- Alerts should route to `#signal-ops-alerts` (Slack / Discord)
+```

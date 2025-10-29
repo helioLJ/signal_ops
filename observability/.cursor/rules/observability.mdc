@@ -1,0 +1,28 @@
+---
+description: OpenTelemetry instrumentation and observability rules
+globs:
+  - "backend/src/**/*.ts"
+  - "observability/**/*"
+alwaysApply: false
+---
+
+# Observability — OpenTelemetry Standards
+
+- All NestJS apps must be **instrumented using OpenTelemetry SDK**
+- Use the `@metinseylan/nestjs-opentelemetry` package
+- Every controller, service, and repository should include:
+  - `@Span()` for critical functions
+  - `@OtelMethodCounter()` on request handlers
+- The **OTEL Collector** is the central data exporter:
+  - Metrics → Prometheus
+  - Logs → Loki
+  - Traces → Tempo
+- Collector config lives in `/observability/otel-collector-config.yaml`
+- Metric name prefixes:
+  - `signal_ops_api_` → API-level metrics
+  - `signal_ops_db_` → database metrics
+- Log fields must include:
+  - `trace_id`, `span_id`, `level`, `context`, `message`
+- Avoid `console.log` — use the provided `LoggerService` integrated with OTEL
+```
+

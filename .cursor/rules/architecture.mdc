@@ -1,0 +1,27 @@
+---
+description: Core architecture and stack definition for Signal Ops
+globs:
+  - "backend/**/*"
+  - "docker-compose.yml"
+alwaysApply: true
+---
+
+# Signal Ops — Architecture Guidelines
+
+- The project follows a **monorepo** structure focused on a NestJS backend and an open-source observability stack (Grafana LGTM + OpenTelemetry).
+- General layout:
+```
+
+/backend         → Main API (NestJS + OTEL)
+/observability   → Prometheus, Loki, Tempo, Grafana, OTEL Collector configs
+docker-compose.yml → Orchestrates all services
+
+```
+- Language: **TypeScript (ES2022)**  
+- Every service must expose:
+- `/metrics` endpoint (Prometheus-scrapable)
+- Structured JSON logs
+- All modules must use **NestJS dependency injection**
+- Keep observability concerns decoupled from business logic (via providers)
+- Do **not** use proprietary APMs (Datadog, New Relic, etc.) — keep the stack open source
+```

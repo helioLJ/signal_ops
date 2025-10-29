@@ -1,0 +1,26 @@
+---
+description: Development workflow and automation
+alwaysApply: true
+---
+
+# Signal Ops — Dev Workflow
+
+- Use **Docker Compose** to spin up the full observability stack:
+```
+
+docker compose up -d
+
+```
+- Branching strategy:
+- `main` → production
+- `dev` → development
+- `feature/*` → new features
+- Commit messages follow **Conventional Commits**:
+- `feat: add OTEL collector config`
+- `fix: grafana dashboard import issue`
+- Pull Requests must include:
+- Clear description of changes
+- Screenshot of affected dashboards (if applicable)
+- Passing tests (`npm run test`)
+- CI/CD (future): validate build, lint, and test before merge
+```

@@ -1,0 +1,27 @@
+---
+description: NestJS modular structure and consistency
+globs:
+  - "backend/src/modules/**/*"
+alwaysApply: false
+---
+
+# NestJS Modules — Structural Rules
+
+- Every module must contain:
+  - `Controller`
+  - `Service`
+  - `DTOs`
+  - (Optional) `Repository`
+- Each module must export its own providers
+- Avoid cross-module imports between unrelated features
+- Each module must log using `LoggerService` with proper context (`moduleName`)
+- Standard layout:
+```
+
+src/modules/tasks/
+tasks.module.ts
+tasks.controller.ts
+tasks.service.ts
+dto/
+
+```

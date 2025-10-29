@@ -1,0 +1,22 @@
+---
+description: Code style and backend standards
+globs:
+  - "backend/src/**/*.ts"
+alwaysApply: true
+---
+
+# Backend — Code Style Guidelines
+
+- Formatter: **Prettier + ESLint (Airbnb base)**
+- Organize imports by group: core → third-party → local
+- Functions and classes must be **small and cohesive** (max 40 lines)
+- Naming conventions:
+  - Files → kebab-case
+  - Classes → PascalCase
+  - Variables/functions → camelCase
+- Every endpoint must return DTOs validated via `class-validator`
+- Use `HttpException` or custom errors — never throw generic errors
+- Prefer `async/await` over callbacks or `.then()`
+- All major controllers / services must include **Jest unit tests**
+- `any` type is forbidden — use explicit types or proper generics
+```
