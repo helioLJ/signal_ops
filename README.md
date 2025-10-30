@@ -26,7 +26,8 @@ docker-compose.yml → Orchestrates all services
 
 High-level data paths for metrics, logs, traces, dashboards, and alerts.
 
-<img alt="Observability and Monitoring Flow" src="./observability/flow.png"/>
+<img src="./observability/flow.png"/>
+![](observability/flow.png)
 
 Explanation:
 - The backend auto-instrumentations and SDK emit traces and logs via OTLP to the Collector.
