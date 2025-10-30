@@ -22,36 +22,53 @@ docker-compose.yml → Orchestrates all services
   - Grafana (visualization)
   - OpenTelemetry (instrumentation)
 
-## Development
+## Observability and Monitoring Flow
 
-### Prerequisites
+High-level data paths for metrics, logs, traces, dashboards, and alerts.
 
-- Docker & Docker Compose
-- Node.js 18+ (for local development)
-- Git
+```mermaid
+flowchart LR
+  subgraph Backend[NestJS Backend]
+    A[Auto-instrumentations\n+HTTP + DB]
+    B[Custom Logs\n+OtelLogger/Interceptor]
+    C[Prometheus Exporter\n:9464]
+  end
 
-### Quick Start
+  subgraph Collector[OpenTelemetry Collector]
+    R[OTLP Receiver\n:4317/:4318]
+    P1[Attributes Processor\n"loki.resource.labels=service.name"\n"loki.attribute.labels=log.source"]
+    X1[Loki Exporter]
+    X2[Tempo Exporter]
+  end
 
-1. Clone the repository:
-```bash
-git clone https://github.com/helioLJ/signal_ops.git
-cd signal_ops
+  subgraph Storage[LGTM Backends]
+    L[Loki\nLogs]
+    T[Tempo\nTraces]
+    M[Prometheus\nMetrics]
+  end
+
+  subgraph Grafana[Grafana]
+    D1[Dashboards\nGolden Signals]
+    D2[Complete Observability\nLogs + Traces]
+    A1[Alert Rules\n(Error Rate, P95)]
+  end
+
+  A -->|OTLP traces| R --> X2 --> T
+  B -->|OTLP logs| R --> P1 --> X1 --> L
+  C -->|/metrics scrape| M
+  L --> D2
+  T --> D2
+  M --> D1
+  M --> A1
 ```
 
-2. Start the full observability stack:
-```bash
-docker compose up -d
-```
+![Observability and Monitoring Flow](./observability/flow.png)
 
-3. Access services:
-- Grafana: http://localhost:3001 (admin/admin)
-- Prometheus: http://localhost:9090
-- Backend API: http://localhost:3002
-- SDK Metrics (Prometheus-scrapable): http://localhost:9464/metrics
-
-Dashboards provisioned (Grafana → SignalOps folder):
-- SignalOps - Complete Observability (Golden signals + Logs + Traces)
-- SignalOps - Golden Signals
+Explanation:
+- The backend auto-instrumentations and SDK emit traces and logs via OTLP to the Collector.
+- The Collector maps OTEL attributes into Loki labels (e.g., `service_name`) and forwards logs to Loki and traces to Tempo.
+- Metrics are exposed directly by the SDK on port 9464 and scraped by Prometheus.
+- Grafana visualizes metrics/logs/traces and evaluates alert rules on Prometheus metrics.
 
 ## What you can test
 
@@ -102,6 +119,37 @@ While the load runs:
   - Traces (Tempo): search by service and see spans from controller → service → DB
   - Dashboards: open “SignalOps - Complete Observability”
 
+## Development
+
+### Prerequisites
+
+- Docker & Docker Compose
+- Node.js 18+ (for local development)
+- Git
+
+### Quick Start
+
+1. Clone the repository:
+```bash
+git clone https://github.com/helioLJ/signal_ops.git
+cd signal_ops
+```
+
+2. Start the full observability stack:
+```bash
+docker compose up -d
+```
+
+3. Access services:
+- Grafana: http://localhost:3001 (admin/admin)
+- Prometheus: http://localhost:9090
+- Backend API: http://localhost:3002
+- SDK Metrics (Prometheus-scrapable): http://localhost:9464/metrics
+
+Dashboards provisioned (Grafana → SignalOps folder):
+- SignalOps - Complete Observability (Golden signals + Logs + Traces)
+- SignalOps - Golden Signals
+
 ## Implementation notes (OpenTelemetry ↔ Loki/Tempo)
 
 - Backend OTEL SDK exports:
@@ -115,18 +163,6 @@ While the load runs:
 - Loki label mapping from OTEL is done via attributes processor hints:
   - `loki.resource.labels = service.name` → label `service_name`
   - `loki.attribute.labels = log.source` → label `log_source`
-
-## Observability and Monitoring Flow
-
-High-level data paths for metrics, logs, traces, dashboards, and alerts.
-
-![Observability and Monitoring Flow](observability/flow.png)
-
-Explanation:
-- The backend auto-instrumentations and SDK emit traces and logs via OTLP to the Collector.
-- The Collector maps OTEL attributes into Loki labels (e.g., `service_name`) and forwards logs to Loki and traces to Tempo.
-- Metrics are exposed directly by the SDK on port 9464 and scraped by Prometheus.
-- Grafana visualizes metrics/logs/traces and evaluates alert rules on Prometheus metrics.
 
 ## Troubleshooting
 
