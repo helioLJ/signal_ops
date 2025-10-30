@@ -1,0 +1,44 @@
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+      grpc:
+        endpoint: 0.0.0.0:4317
+
+processors:
+  batch: {}
+  attributes/logs_to_labels:
+    actions:
+      # Tell Loki exporter which resource attributes to turn into labels
+      - key: loki.resource.labels
+        action: insert
+        value: service.name
+      # And which log attributes to turn into labels
+      - key: loki.attribute.labels
+        action: insert
+        value: log.source
+
+exporters:
+  # Tempo receives OTLP traces on 4317/4318 via the gateway (using service name tempo)
+  otlp/tempo:
+    endpoint: signalops-tempo:4317
+    tls:
+      insecure: true
+  # Prometheus remote write is not needed; we expose Prometheus metrics via collector's own scrape endpoint if needed
+  # For metrics we will keep them in the backend SDK's PrometheusExporter on 9464; Prometheus will scrape it directly.
+  # Loki HTTP logs via push API
+  loki:
+    endpoint: http://signalops-loki:3100/loki/api/v1/push
+    # Using attributes processor to create label-friendly keys
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp/tempo]
+    logs:
+      receivers: [otlp]
+      processors: [attributes/logs_to_labels, batch]
+      exporters: [loki]

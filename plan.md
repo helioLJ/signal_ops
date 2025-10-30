@@ -37,10 +37,39 @@ API simples com CRUD de tarefas e algumas rotas lentas propositalmente para gera
 
 #### 🧪 Resultados esperados
 
-* Você acessa `http://localhost:3000/api/tasks` → vê métricas de requisições em `/metrics`.
+* Você acessa `http://localhost:3002/api/tasks` → vê métricas expostas pelo SDK em `http://localhost:9464/metrics`.
 * Grafana exibe dashboards de latência, throughput e logs de erro.
 * Tempo exibe o trace da requisição completa (controller → service → DB).
 * Alerta dispara se `error_rate > 5%`.
+
+#### ▶️ Como gerar dados de sinais (metrics/logs/traces)
+
+* Suba a stack: `docker compose up -d --build`
+* Gere carga (padrões: base=http://localhost:3002, 10 workers, ~30 RPS, 3 min):
+  - `node scripts/load.js`
+  - Parâmetros (opcionais): `BASE_URL`, `CONCURRENCY`, `RPS`, `DURATION_SEC`
+  - Exemplo: `CONCURRENCY=20 RPS=60 DURATION_SEC=300 node scripts/load.js`
+* Endpoints úteis:
+  - API: `http://localhost:3002` (health em `/health`, docs em `/api/docs`)
+  - Métricas (Prometheus scrape): `http://localhost:9464/metrics`
+  - Prometheus: `http://localhost:9090`
+  - Grafana: `http://localhost:3001` (admin/admin)
+
+### ✅ Status atual (Fase 1)
+
+- [x] Backend NestJS com CRUD e rotas lentas (inclui `/tasks/slow` e `/tasks/error-prone`)
+- [x] PostgreSQL via Docker (serviço `postgres` na Compose)
+- [x] OpenTelemetry SDK integrado no backend (traces, logs, métricas)
+- [x] OpenTelemetry Collector configurado (recebe OTLP e exporta para Tempo e Loki)
+- [x] Prometheus configurado para scrapes do backend em `backend:9464/metrics`
+- [x] Loki configurado para agregação de logs
+- [x] Tempo configurado para tracing distribuído (OTLP)
+- [x] Grafana disponível em `http://localhost:3001`
+- [x] Docker Compose orquestrando todos os serviços
+- [x] Backend exposto em `http://localhost:3002`
+- [x] Script de carga disponível em `scripts/load.js`
+- [ ] Alertas do Grafana configurados (pendente)
+- [ ] Dashboards customizados finais no Grafana (pendente)
 
 ---
 

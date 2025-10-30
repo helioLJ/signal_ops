@@ -1,0 +1,38 @@
+apiVersion: 1
+
+datasources:
+  - uid: Prometheus
+    name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://signalops-prometheus:9090
+    isDefault: true
+    editable: true
+  - uid: Loki
+    name: Loki
+    type: loki
+    access: proxy
+    url: http://signalops-loki:3100
+    editable: true
+  - uid: Tempo
+    name: Tempo
+    type: tempo
+    access: proxy
+    url: http://signalops-tempo:3200
+    jsonData:
+      tracesToLogs:
+        datasourceUid: Loki
+        spanStartTimeShift: '-10m'
+        spanEndTimeShift: '10m'
+        tags: ['service.name']
+        mappedTags: [{ key: 'service.name', value: 'service_name' }]
+        filterByTraceID: true
+        filterBySpanID: false
+      tracesToMetrics:
+        datasourceUid: Prometheus
+        tags: [{ key: 'service.name', value: 'service_name' }]
+      serviceMap:
+        datasourceUid: Prometheus
+      nodeGraph:
+        enabled: true
+    editable: true
