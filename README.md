@@ -26,42 +26,6 @@ docker-compose.yml → Orchestrates all services
 
 High-level data paths for metrics, logs, traces, dashboards, and alerts.
 
-```mermaid
-flowchart LR
-  subgraph Backend[NestJS Backend]
-    A[Auto-instrumentations\n+HTTP + DB]
-    B[Custom Logs\n+OtelLogger/Interceptor]
-    C[Prometheus Exporter\n:9464]
-  end
-
-  subgraph Collector[OpenTelemetry Collector]
-    R[OTLP Receiver\n:4317/:4318]
-    P1[Attributes Processor\n"loki.resource.labels=service.name"\n"loki.attribute.labels=log.source"]
-    X1[Loki Exporter]
-    X2[Tempo Exporter]
-  end
-
-  subgraph Storage[LGTM Backends]
-    L[Loki\nLogs]
-    T[Tempo\nTraces]
-    M[Prometheus\nMetrics]
-  end
-
-  subgraph Grafana[Grafana]
-    D1[Dashboards\nGolden Signals]
-    D2[Complete Observability\nLogs + Traces]
-    A1[Alert Rules\n(Error Rate, P95)]
-  end
-
-  A -->|OTLP traces| R --> X2 --> T
-  B -->|OTLP logs| R --> P1 --> X1 --> L
-  C -->|/metrics scrape| M
-  L --> D2
-  T --> D2
-  M --> D1
-  M --> A1
-```
-
 <img alt="Observability and Monitoring Flow" src="./observability/flow.png"/>
 
 Explanation:
